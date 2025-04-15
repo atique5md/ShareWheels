@@ -52,11 +52,11 @@ public class DriverActivity extends AppCompatActivity {
                     loadFragment(new HomeFragment());
                 } else if (id == R.id.nav_profile) {
                     // Uncomment when ProfileFragment is ready
-                     loadFragment(new ProfileFragment());
+                    loadFragment(new ProfileFragment());
                     Toast.makeText(DriverActivity.this, "Profile", Toast.LENGTH_SHORT).show();
                 } else if (id == R.id.nav_setting) {
                     // Uncomment when HelpFragment is ready
-                     loadFragment(new SettingFragment());
+                    loadFragment(new SettingFragment());
                     Toast.makeText(DriverActivity.this, "Settings", Toast.LENGTH_SHORT).show();
                 } else if (id == R.id.nav_logout) {
                     Toast.makeText(DriverActivity.this, "Logout", Toast.LENGTH_SHORT).show();

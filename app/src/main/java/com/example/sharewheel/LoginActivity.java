@@ -1,99 +1,129 @@
 package com.example.sharewheel;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText username_input;
-    EditText password_input;
-    Button login_btn;
-    CheckBox diverBox, riderBox;
+    EditText usernameInput, passwordInput;
+    Button loginBtn;
+    RadioGroup userTypeGroup;
+    RadioButton driverRadio, riderRadio;
+    TextView signupRedirect;
 
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Initialize UI components
+        usernameInput = findViewById(R.id.username_input);
+        passwordInput = findViewById(R.id.password_input);
+        loginBtn = findViewById(R.id.login_btn);
+        userTypeGroup = findViewById(R.id.user_type_group);
+        driverRadio = findViewById(R.id.driver_radio);
+        riderRadio = findViewById(R.id.rider_radio);
+        signupRedirect = findViewById(R.id.signup_redirect);
 
-        // Initialize views
-        username_input = findViewById(R.id.username_input);
-        password_input = findViewById(R.id.password_input);
-        login_btn = findViewById(R.id.login_btn);
-        diverBox = findViewById(R.id.Driver_box);
-        riderBox = findViewById(R.id.Rider_box);
+        // Initially disable the login button until a role is selected (optional)
+        // loginBtn.setEnabled(false);
 
-        // Make checkboxes mutually exclusive
-        diverBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                riderBox.setChecked(false);
+        // Listen for radio group selection changes
+        userTypeGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.driver_radio) {
+                loginBtn.setBackgroundColor(getResources().getColor(R.color.driver_color)); // Replace with your color
+                loginBtn.setText("Login as Driver");
+                loginBtn.setVisibility(Button.VISIBLE); // Optional
+            } else if (checkedId == R.id.rider_radio) {
+                loginBtn.setBackgroundColor(getResources().getColor(R.color.rider_color)); // Replace with your color
+                loginBtn.setText("Login as Rider");
+                loginBtn.setVisibility(Button.VISIBLE); // Optional
             }
         });
 
-        riderBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                diverBox.setChecked(false);
-            }
-        });
-
-        // Handle login logic
-        login_btn.setOnClickListener(v -> {
-            String username = username_input.getText().toString().trim();
-            String password = password_input.getText().toString().trim();
+        loginBtn.setOnClickListener(v -> {
+            String username = usernameInput.getText().toString().trim();
+            String password = passwordInput.getText().toString().trim();
+            int selectedRoleId = userTypeGroup.getCheckedRadioButtonId();
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(LoginActivity.this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
-            } else if (username.length() < 6) {
-                Toast.makeText(LoginActivity.this, "Username must be at least 6 characters long", Toast.LENGTH_SHORT).show();
-            } else if (password.length() < 6) {
-                Toast.makeText(LoginActivity.this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show();
-            } else if (!isValidPassword(password)) {
-                Toast.makeText(LoginActivity.this, "Password must contain at least one digit and one special character", Toast.LENGTH_SHORT).show();
-            } else if (!diverBox.isChecked() && !riderBox.isChecked()) {
-                Toast.makeText(LoginActivity.this, "Please select a role (Driver or Rider)", Toast.LENGTH_SHORT).show();
-            } else {
-                // Redirect based on role
-                if (diverBox.isChecked()) {
+                Toast.makeText(this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (username.length() < 6) {
+                Toast.makeText(this, "Username must be at least 6 characters long", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (password.length() < 6) {
+                Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!isValidPassword(password)) {
+                Toast.makeText(this, "Password must contain at least one digit and one special character", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (selectedRoleId == -1) {
+                Toast.makeText(this, "Please select a role (Driver or Rider)", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Retrieve stored data
+            SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+            String storedUsername = sharedPreferences.getString("username", null);
+            String storedPassword = sharedPreferences.getString("password", null);
+            String storedRole = sharedPreferences.getString("role", null);
+
+            String selectedRole = (selectedRoleId == driverRadio.getId()) ? "Driver" : "Rider";
+
+            if (storedUsername == null || storedPassword == null || storedRole == null) {
+                Toast.makeText(this, "No user found. Please sign up first.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (username.equals(storedUsername) && password.equals(storedPassword) && selectedRole.equals(storedRole)) {
+                Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+
+                if (selectedRole.equals("Driver")) {
                     startActivity(new Intent(this, DriverActivity.class));
-                } else if (riderBox.isChecked()) {
+                } else {
                     startActivity(new Intent(this, RiderActivity.class));
                 }
-                Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Invalid credentials or role. Try again.", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        signupRedirect.setOnClickListener(v -> {
+            startActivity(new Intent(LoginActivity.this, SignUpActivity.class));
         });
     }
 
-    // Validate password for digit + special character
     private boolean isValidPassword(String password) {
         boolean hasDigit = false;
         boolean hasSpecialChar = false;
 
         for (char c : password.toCharArray()) {
-            if (Character.isDigit(c)) {
-                hasDigit = true;
-            } else if (!Character.isLetterOrDigit(c)) {
-                hasSpecialChar = true;
-            }
+            if (Character.isDigit(c)) hasDigit = true;
+            else if (!Character.isLetterOrDigit(c)) hasSpecialChar = true;
         }
-
         return hasDigit && hasSpecialChar;
     }
 }

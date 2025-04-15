@@ -1,126 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@color/primary"
-    android:layout_gravity="center"
     tools:context=".MainActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <ImageView
+        android:id="@+id/logo_image"
+        android:layout_width="0dp"
+        android:layout_height="110dp"
+        android:src="@drawable/icon_account_foreground"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="80dp" />
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Log In"
+        android:textStyle="bold"
+        android:textSize="40sp"
+        android:textColor="@color/white"
         android:gravity="center"
-        android:orientation="vertical">
+        android:padding="10dp"
+        app:layout_constraintTop_toBottomOf="@id/logo_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="110dp"
-            android:src="@drawable/icon_account_foreground"
-            android:layout_marginTop="40dp"
+    <EditText
+        android:id="@+id/username_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="username"
+        android:inputType="text"
+        android:background="@drawable/bg_imp_brn"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:padding="20dp"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="15dp" />
 
-            />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/registration"
-            android:gravity="center"
-            android:textSize="40sp"
-            android:textColor="@color/white"
-            />
+    <EditText
+        android:id="@+id/password_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="password"
+        android:inputType="textPassword"
+        android:background="@drawable/bg_imp_brn"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:padding="20dp"
+        app:layout_constraintTop_toBottomOf="@id/username_input"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="15dp" />
 
-        <EditText
-            android:id="@+id/username_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/rounded_corner"
-            android:hint="username"
-            android:inputType="text"
-            android:padding="20dp"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
+    <RadioGroup
+        android:id="@+id/user_type_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/password_input"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        >
 
-        <EditText
-            android:id="@+id/password_input"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/rounded_corner"
-            android:hint="password"
-            android:inputType="textPassword"
-            android:padding="20dp"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
-        <CheckBox
-            android:id="@+id/Driver_box"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="As Driver"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-
-            />
-
-        <CheckBox
-            android:id="@+id/Rider_box"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="As Rider"
-            android:textColor="@color/white"
-            android:textSize="20sp"/>
-
-        <Button
-            android:id="@+id/login_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:backgroundTint="@color/white"
-            android:padding="20dp"
-            android:text="Login"
-            android:textColor="@color/black"
-            android:textSize="20dp"
-            tools:ignore="VisualLintButtonSize"
-            android:gravity="center"
-            android:background="@drawable/rounded_corner"/>
-
-        <TextView
+        <RadioButton
+            android:id="@+id/driver_radio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:text="Social Login"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp"
+            android:text="Driver"
+            android:textColor="@color/white"
+            android:textSize="20sp"
             android:padding="10dp"
-            android:gravity="center">
+            />
 
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_margin="16dp"
-                android:id="@+id/facebook_btn"
-                android:src="@drawable/facebook" />
+        <RadioButton
+            android:id="@+id/rider_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rider"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:padding="10dp" />
+    </RadioGroup>
 
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_margin="16dp"
-                android:id="@+id/linkedin_btn"
-                android:src="@drawable/linkedin" />
+    <Button
+        android:id="@+id/login_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Login"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:backgroundTint="@color/white"
+        android:padding="20dp"
+        android:gravity="center"
+        android:layout_marginTop="15dp"
+        android:layout_marginHorizontal="15dp"
+        app:layout_constraintTop_toBottomOf="@id/user_type_group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        </LinearLayout>
+    <TextView
+        android:id="@+id/signup_redirect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create new account ? Sign Up"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:layout_marginTop="30dp"
+        app:layout_constraintTop_toBottomOf="@id/login_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
-    </LinearLayout>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
