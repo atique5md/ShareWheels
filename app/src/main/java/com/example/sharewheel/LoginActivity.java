@@ -27,6 +27,22 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if user is already logged in
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+        String role = sharedPreferences.getString("role", "");
+
+        if (isLoggedIn) {
+            if (role.equals("Driver")) {
+                startActivity(new Intent(this, DriverActivity.class));
+            } else {
+                startActivity(new Intent(this, RiderActivity.class));
+            }
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         // Initialize UI components
@@ -38,22 +54,18 @@ public class LoginActivity extends AppCompatActivity {
         riderRadio = findViewById(R.id.rider_radio);
         signupRedirect = findViewById(R.id.signup_redirect);
 
-        // Initially disable the login button until a role is selected (optional)
-        // loginBtn.setEnabled(false);
-
-        // Listen for radio group selection changes
+        // Role-based UI updates
         userTypeGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.driver_radio) {
                 loginBtn.setBackgroundColor(getResources().getColor(R.color.driver_color)); // Replace with your color
                 loginBtn.setText("Login as Driver");
-                loginBtn.setVisibility(Button.VISIBLE); // Optional
             } else if (checkedId == R.id.rider_radio) {
                 loginBtn.setBackgroundColor(getResources().getColor(R.color.rider_color)); // Replace with your color
                 loginBtn.setText("Login as Rider");
-                loginBtn.setVisibility(Button.VISIBLE); // Optional
             }
         });
 
+        // Login button click listener
         loginBtn.setOnClickListener(v -> {
             String username = usernameInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
@@ -84,12 +96,9 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // Retrieve stored data
-            SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
             String storedUsername = sharedPreferences.getString("username", null);
             String storedPassword = sharedPreferences.getString("password", null);
             String storedRole = sharedPreferences.getString("role", null);
-
             String selectedRole = (selectedRoleId == driverRadio.getId()) ? "Driver" : "Rider";
 
             if (storedUsername == null || storedPassword == null || storedRole == null) {
@@ -99,6 +108,12 @@ public class LoginActivity extends AppCompatActivity {
 
             if (username.equals(storedUsername) && password.equals(storedPassword) && selectedRole.equals(storedRole)) {
                 Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+
+                // Save session
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("isLoggedIn", true);
+                editor.putString("role", selectedRole);
+                editor.apply();
 
                 if (selectedRole.equals("Driver")) {
                     startActivity(new Intent(this, DriverActivity.class));

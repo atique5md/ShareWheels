@@ -40,7 +40,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:queryHint="Search..."
-            android:iconifiedByDefault="true"/>
+            android:iconifiedByDefault="false"
+            android:clickable="true"
+            android:focusable="true"/>
     </androidx.cardview.widget.CardView>
 
     <!-- RecyclerView for displaying states -->

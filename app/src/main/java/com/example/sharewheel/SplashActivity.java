@@ -1,32 +1,34 @@
 package com.example.sharewheel;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class SplashActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_splash);;
+        setContentView(R.layout.activity_splash);
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startActivity(new Intent(SplashActivity.this,LoginActivity.class));
-                finish();
+        new Handler().postDelayed(() -> {
+            SharedPreferences sharedPreferences = getSharedPreferences("user_data", MODE_PRIVATE);
+            boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+            String role = sharedPreferences.getString("role", "");
+
+            if (isLoggedIn) {
+                if (role.equals("Driver")) {
+                    startActivity(new Intent(SplashActivity.this, DriverActivity.class));
+                } else if (role.equals("Rider")) {
+                    startActivity(new Intent(SplashActivity.this, RiderActivity.class));
+                }
+            } else {
+                startActivity(new Intent(SplashActivity.this, LoginActivity.class));
             }
-        },2000);
-
-
-
-
+            finish();
+        }, 2000);
     }
 }
