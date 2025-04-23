@@ -24,7 +24,7 @@ public class RiderActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_driver);
+        setContentView(R.layout.activity_rider);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -49,7 +49,7 @@ public class RiderActivity extends AppCompatActivity {
                 int id = item.getItemId();
 
                 if (id == R.id.nav_home) {
-                    loadFragment(new HomeFragment());
+                    loadFragment(new HomeRiderFragment());
                 } else if (id == R.id.nav_profile) {
                     // Uncomment when ProfileFragment is ready
                     loadFragment(new ProfileFragment());
@@ -70,7 +70,7 @@ public class RiderActivity extends AppCompatActivity {
         });
 
         // Load default fragment
-        loadFragment(new HomeFragment());
+        loadFragment(new HomeRiderFragment());
 
     }
 

@@ -49,7 +49,7 @@ public class DriverActivity extends AppCompatActivity {
                 int id = item.getItemId();
 
                 if (id == R.id.nav_home) {
-                    loadFragment(new HomeFragment());
+                    loadFragment(new HomeDriverFragment());
                 } else if (id == R.id.nav_profile) {
                     // Uncomment when ProfileFragment is ready
                     loadFragment(new ProfileFragment());
@@ -70,7 +70,7 @@ public class DriverActivity extends AppCompatActivity {
         });
 
         // Load default fragment
-        loadFragment(new HomeFragment());
+        loadFragment(new HomeDriverFragment());
 
     }
 
