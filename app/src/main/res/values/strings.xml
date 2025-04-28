@@ -8,4 +8,5 @@
 
     <string name="search_hint">ShareWheel</string>
     <string name="search_hints">Search items...</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>

@@ -14,6 +14,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,11 +90,36 @@ public class HomeDriverFragment extends Fragment {
             if (getContext() != null)
                 Toast.makeText(getContext(), "CardView clicked!", Toast.LENGTH_SHORT).show();
         });
+        // Optional: SearchView focus change
+        cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setIconified(false); // Expand the search view
+            }
+        });
 
         searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
             recyclerView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
         });
-    }
+
+    // Add Map Fragment inside map_container
+    SupportMapFragment mapFragment = SupportMapFragment.newInstance();
+    getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.map_container, mapFragment)
+                .commit();
+
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+        @Override
+        public void onMapReady(@NonNull GoogleMap googleMap) {
+            googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+            // Move to India's center
+            LatLng india = new LatLng(30.2689, 77.9931);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(india, 4));
+        }
+    });
+}
 
     private void filterItems(String query) {
         filteredItems.clear();
