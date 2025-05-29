@@ -1,5 +1,7 @@
 package com.example.sharewheel;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,26 +13,21 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.IOException;
 import java.util.List;
 
 public class HomeDriverFragment extends Fragment {
 
     private SearchView searchView;
-    private RecyclerView recyclerView;
-    private StateAdapter adapter;
-    private List<String> allItems;
-    private List<String> filteredItems;
+    private GoogleMap googleMap;
 
     public HomeDriverFragment() {
         // Required empty public constructor
@@ -48,96 +45,71 @@ public class HomeDriverFragment extends Fragment {
 
         CardView cardView = view.findViewById(R.id.cardViewSearch);
         searchView = view.findViewById(R.id.searchView);
-        recyclerView = view.findViewById(R.id.recyclerView);
 
-        allItems = new ArrayList<>();
-        filteredItems = new ArrayList<>();
+        // Optional: CardView click to expand search view
+        cardView.setOnClickListener(v -> searchView.setIconified(false));
 
-        // ✅ Add Indian state names (do NOT redeclare allItems here)
-        Collections.addAll(allItems,
-                "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa",
-                "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala",
-                "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland",
-                "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-                "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
-        );
-
-        filteredItems.addAll(allItems); // Initial load
-
-        // ✅ Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new StateAdapter(filteredItems);
-        recyclerView.setAdapter(adapter);
-
-        searchView.setQueryHint("Search for a state");
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                filterItems(query);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                filterItems(newText);
-                return true;
-            }
-        });
-
-        // Optional: CardView click
-        cardView.setOnClickListener(v -> {
-            if (getContext() != null)
-                Toast.makeText(getContext(), "CardView clicked!", Toast.LENGTH_SHORT).show();
-        });
-        // Optional: SearchView focus change
-        cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchView.setIconified(false); // Expand the search view
-            }
-        });
-
-        searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> {
-            recyclerView.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
-        });
-
-    // Add Map Fragment inside map_container
-    SupportMapFragment mapFragment = SupportMapFragment.newInstance();
-    getChildFragmentManager()
+        // Initialize map fragment inside map_container
+        SupportMapFragment mapFragment = SupportMapFragment.newInstance();
+        getChildFragmentManager()
                 .beginTransaction()
                 .replace(R.id.map_container, mapFragment)
                 .commit();
 
         mapFragment.getMapAsync(new OnMapReadyCallback() {
-        @Override
-        public void onMapReady(@NonNull GoogleMap googleMap) {
-            googleMap.getUiSettings().setZoomControlsEnabled(true);
+            @Override
+            public void onMapReady(@NonNull GoogleMap gMap) {
+                googleMap = gMap;
+                googleMap.getUiSettings().setZoomControlsEnabled(true);
 
-            // Move to India's center
-            LatLng india = new LatLng(30.2689, 77.9931);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(india, 4));
-        }
-    });
-}
-
-    private void filterItems(String query) {
-        filteredItems.clear();
-
-        if (query.isEmpty()) {
-            filteredItems.addAll(allItems);
-        } else {
-            for (String item : allItems) {
-                if (item.toLowerCase().contains(query.toLowerCase())) {
-                    filteredItems.add(item);
-                }
+                // Move to India's center initially
+                LatLng india = new LatLng(30.2689, 77.9931);
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(india, 4));
             }
-        }
+        });
 
-        if (filteredItems.isEmpty()) {
-            Toast.makeText(getContext(), "No results found", Toast.LENGTH_SHORT).show();
-        }
+        searchView.setQueryHint("Search for a location");
 
-        adapter.updateList(new ArrayList<>(filteredItems)); // ✅ Update the adapter
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                if (query == null || query.trim().isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter a location", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+
+                Geocoder geocoder = new Geocoder(getContext());
+                try {
+                    List<Address> addresses = geocoder.getFromLocationName(query, 1);
+                    if (addresses == null || addresses.size() == 0) {
+                        Toast.makeText(getContext(), "Location not found", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Address address = addresses.get(0);
+                        LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+
+                        if (googleMap != null) {
+                            googleMap.clear();
+                            googleMap.addMarker(new MarkerOptions().position(latLng).title(query));
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f));
+                        }
+
+                        // Toast the searched location
+                        Toast.makeText(getContext(), "Searched Location: " + query, Toast.LENGTH_SHORT).show();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Geocoder service not available", Toast.LENGTH_SHORT).show();
+                }
+
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Optional: you can handle live search here if needed
+                return false;
+            }
+        });
     }
 }
