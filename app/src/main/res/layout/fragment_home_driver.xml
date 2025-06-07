@@ -40,24 +40,78 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:queryHint="Search..."
-            android:iconifiedByDefault="false"
-            android:clickable="true"
-            android:focusable="true"/>
+            android:iconifiedByDefault="false"/>
     </androidx.cardview.widget.CardView>
 
-    <!-- RecyclerView for displaying states -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+    <!-- Ride Request Display (Hidden initially) -->
+    <LinearLayout
+        android:id="@+id/rideRequestContainer"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
         android:visibility="gone"
+        android:background="@android:color/white"
+        app:cardElevation="6dp"
         app:layout_constraintTop_toBottomOf="@id/cardViewSearch"
-        app:layout_constraintBottom_toTopOf="@id/map"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_margin="16dp">
 
+        <TextView
+            android:id="@+id/tvSource"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Source:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDestination"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Destination:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Distance:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price:"
+            android:textStyle="bold" />
+
+        <!-- Accept & Reject Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="12dp"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btnAccept"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Accept Ride"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/btnReject"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Reject Ride"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Placeholder for Map -->
     <androidx.cardview.widget.CardView
@@ -67,19 +121,18 @@
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp"
         android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/recyclerView"
+        app:layout_constraintTop_toBottomOf="@id/rideRequestContainer"
         app:layout_constraintBottom_toTopOf="@id/cardButtons"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- This is where the map will be shown -->
         <FrameLayout
             android:id="@+id/map_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </androidx.cardview.widget.CardView>
 
-    <!-- Buttons for Ride Actions -->
+    <!-- Bottom Buttons (Optional UI - could be replaced) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardButtons"
         android:layout_width="0dp"
@@ -104,7 +157,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Accept Ride"
+                android:text="Start Ride"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -112,7 +165,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Reject Ride"
+                android:text="Cancel"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
