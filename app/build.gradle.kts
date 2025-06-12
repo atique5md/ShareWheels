@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.play.services.wearable)
     implementation(libs.play.services.location)
     implementation(libs.firebase.database)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -52,6 +53,9 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.android.libraries.places:places:3.3.0")
+
+    implementation("com.android.volley:volley:1.2.1")
 
 
 

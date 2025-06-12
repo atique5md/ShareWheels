@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -35,6 +37,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -96,7 +100,6 @@ public class HomeRiderFragment extends Fragment {
             float distanceKm = results[0] / 1000f;
             int price = (int) (distanceKm * 10); // ₹10/km
 
-            // Save ride data to SharedPreferences
             SharedPreferences prefs = requireContext().getSharedPreferences("ride_data", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("source_address", sourceAddress);
@@ -105,7 +108,6 @@ public class HomeRiderFragment extends Fragment {
             editor.putInt("price", price);
             editor.apply();
 
-            // AlertDialog to show details
             AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
             View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dalog_rider, null);
             builder.setView(dialogView);
@@ -125,25 +127,20 @@ public class HomeRiderFragment extends Fragment {
             okButton.setOnClickListener(dialogView1 -> {
                 dialog.dismiss();
                 Toast.makeText(getContext(), "Ride request sent to driver", Toast.LENGTH_SHORT).show();
-                // Optional: Switch to driver side
-                // startActivity(new Intent(getContext(), DriverActivity.class));
             });
 
             dialog.show();
         });
 
-        mapFragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull GoogleMap gMap) {
-                googleMap = gMap;
-                googleMap.getUiSettings().setZoomControlsEnabled(true);
-                googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    googleMap.setMyLocationEnabled(true);
-                }
-                LatLng india = new LatLng(20.5937, 78.9629);
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(india, 5));
+        mapFragment.getMapAsync(gMap -> {
+            googleMap = gMap;
+            googleMap.getUiSettings().setZoomControlsEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                googleMap.setMyLocationEnabled(true);
             }
+            LatLng india = new LatLng(20.5937, 78.9629);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(india, 5));
         });
 
         btnGetLocation.setOnClickListener(v -> {
@@ -187,12 +184,48 @@ public class HomeRiderFragment extends Fragment {
 
                     sourceLatLng = currentLatLng;
 
+                    // Step 1: Load the original image from drawable as a Bitmap
+                    Bitmap original = BitmapFactory.decodeResource(getResources(), R.drawable.dbike);
+
+// Step 2: Resize the image (100x100 pixels)
+                    Bitmap scaled = Bitmap.createScaledBitmap(original, 100, 100, false);
+
+// Step 3: Convert scaled bitmap to BitmapDescriptor
+                    BitmapDescriptor bikeIcon = BitmapDescriptorFactory.fromBitmap(scaled);
+
+// Step 4: Add bike markers around current location (front, back, left, right)
+                    double[][] offsets = {
+                            {0.0005, 0.0},    // front (north)
+                            {-0.0005, 0.0},   // back (south)
+                            {0.0, 0.0005},    // right (east)
+                            {0.0, -0.0005}    // left (west)
+                    };
+
+                    for (double[] offset : offsets) {
+                        LatLng bikeLatLng = new LatLng(
+                                currentLatLng.latitude + offset[0],
+                                currentLatLng.longitude + offset[1]
+                        );
+
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(bikeLatLng)
+                                .title("Bike")
+                                .icon(bikeIcon));
+                    }
+
+
                     Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
                     try {
                         List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                         if (addresses != null && !addresses.isEmpty()) {
                             sourceAddress = addresses.get(0).getAddressLine(0);
                             Toast.makeText(getContext(), "Source: " + sourceAddress, Toast.LENGTH_LONG).show();
+                            SharedPreferences prefs = requireContext().getSharedPreferences("ride_data", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putFloat("source_lat", (float) currentLatLng.latitude);
+                            editor.putFloat("source_lng", (float) currentLatLng.longitude);
+                            editor.putString("source_address", sourceAddress);
+                            editor.apply();
                         } else {
                             Toast.makeText(getContext(), "Location found but address unavailable", Toast.LENGTH_SHORT).show();
                         }

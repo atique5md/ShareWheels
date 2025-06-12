@@ -1,10 +1,15 @@
 package com.example.sharewheel;
 
+import static android.content.ContentValues.TAG;
+
+import static com.example.sharewheel.PolylineDecoder.decodePolyline;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,15 +32,25 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import com.google.gson.Gson;
+import android.graphics.Color;
+
 
 public class HomeDriverFragment extends Fragment {
 
     private SearchView searchView;
     private GoogleMap googleMap;
+    private final Gson gson = new Gson();
+    private Polyline currentRoute;
+
 
     public HomeDriverFragment() {}
 
@@ -114,6 +129,7 @@ public class HomeDriverFragment extends Fragment {
         });
     }
 
+
     private void showRideIfExists() {
         if (getView() == null) return;
 
@@ -138,7 +154,40 @@ public class HomeDriverFragment extends Fragment {
             tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", distance));
             tvPrice.setText("Price: ₹" + price);
 
-            showSourceAndDestinationOnMap(source, destination);
+            // Use geocoder to fetch LatLngs
+            Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
+            try {
+                List<Address> sourceList = geocoder.getFromLocationName(source, 1);
+                List<Address> destinationList = geocoder.getFromLocationName(destination, 1);
+
+                if (!sourceList.isEmpty() && !destinationList.isEmpty()) {
+                    Address sourceAddress = sourceList.get(0);
+                    Address destinationAddress = destinationList.get(0);
+
+                    LatLng sourceLatLng = new LatLng(sourceAddress.getLatitude(), sourceAddress.getLongitude());
+                    LatLng destinationLatLng = new LatLng(destinationAddress.getLatitude(), destinationAddress.getLongitude());
+
+                    googleMap.clear();
+
+                    googleMap.addMarker(new MarkerOptions().position(sourceLatLng).title("Source").snippet(source));
+                    googleMap.addMarker(new MarkerOptions().position(destinationLatLng).title("Destination").snippet(destination));
+
+                    // Adjust camera
+                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                    builder.include(sourceLatLng);
+                    builder.include(destinationLatLng);
+                    LatLngBounds bounds = builder.build();
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 150);
+                    googleMap.animateCamera(cameraUpdate);
+
+                    // 🔹 Call drawRoute with fetched LatLngs
+                    drawRoute(sourceLatLng, destinationLatLng);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getContext(), "Error loading route", Toast.LENGTH_SHORT).show();
+            }
+
         } else {
             rideRequestContainer.setVisibility(View.GONE);
         }
@@ -156,6 +205,102 @@ public class HomeDriverFragment extends Fragment {
         });
     }
 
+    //    private void showRideIfExists() {
+//        if (getView() == null) return;
+//
+//        LinearLayout rideRequestContainer = getView().findViewById(R.id.rideRequestContainer);
+//        TextView tvSource = getView().findViewById(R.id.tvSource);
+//        TextView tvDestination = getView().findViewById(R.id.tvDestination);
+//        TextView tvDistance = getView().findViewById(R.id.tvDistance);
+//        TextView tvPrice = getView().findViewById(R.id.tvPrice);
+//        Button btnAccept = getView().findViewById(R.id.btnAccept);
+//        Button btnReject = getView().findViewById(R.id.btnReject);
+//
+//        SharedPreferences prefs = requireContext().getSharedPreferences("ride_data", Context.MODE_PRIVATE);
+//        String source = prefs.getString("source_address", null);
+//        String destination = prefs.getString("destination_address", null);
+//        float distance = prefs.getFloat("distance", -1f);
+//        int price = prefs.getInt("price", -1);
+//
+//        if (source != null && destination != null && distance > 0 && price > 0) {
+//            rideRequestContainer.setVisibility(View.VISIBLE);
+//            tvSource.setText("Source: " + source);
+//            tvDestination.setText("Destination: " + destination);
+//            tvDistance.setText(String.format(Locale.getDefault(), "Distance: %.2f km", distance));
+//            tvPrice.setText("Price: ₹" + price);
+//
+//            showSourceAndDestinationOnMap(source, destination);
+//        } else {
+//            rideRequestContainer.setVisibility(View.GONE);
+//        }
+//
+//        btnAccept.setOnClickListener(v -> {
+//            Toast.makeText(getContext(), "Ride Accepted!", Toast.LENGTH_SHORT).show();
+//            rideRequestContainer.setVisibility(View.GONE);
+//            prefs.edit().clear().apply();
+//        });
+//
+//        btnReject.setOnClickListener(v -> {
+//            Toast.makeText(getContext(), "Ride Rejected!", Toast.LENGTH_SHORT).show();
+//            rideRequestContainer.setVisibility(View.GONE);
+//            prefs.edit().clear().apply();
+//        });
+//    }
+    private void drawRoute(LatLng origin, LatLng destination) {
+        if (origin == null || destination == null) {
+            Log.e(TAG, "drawRoute skipped - null origin or destination");
+            return;
+        }
+
+        Log.d(TAG, "Drawing route from " + origin + " to " + destination);
+
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=" + origin.latitude + "," + origin.longitude +
+                "&destination=" + destination.latitude + "," + destination.longitude +
+                "&mode=driving" +
+                "&key=" + "Direction API Key Paste";        // important
+
+        VolleyHelper.sendGetRequest(requireContext(), url, new VolleyHelper.VolleyCallback() {
+            @Override
+            public void onSuccess(String response) {
+                Log.d(TAG, "Directions API success");
+
+
+
+                JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+
+                JsonArray routes = jsonObject.getAsJsonArray("routes");
+
+                if (routes == null || routes.size() == 0) {
+                    Log.e(TAG, "No routes found");
+                    return;
+                }
+
+                JsonObject route = routes.get(0).getAsJsonObject();
+                JsonObject overviewPolyline = route.getAsJsonObject("overview_polyline");
+                String encodedPoints = overviewPolyline.get("points").getAsString();
+
+                List<LatLng> routePoints = decodePolyline(encodedPoints);
+                Log.d(TAG, "Route decoded with " + routePoints.size() + " points");
+
+                requireActivity().runOnUiThread(() -> {
+                    if (currentRoute != null) currentRoute.remove();
+
+                    currentRoute = googleMap.addPolyline(new PolylineOptions()
+                            .addAll(routePoints)
+                            .width(12)
+                            .color(Color.BLUE)
+                            .geodesic(true));
+                    Log.d(TAG, "Route drawn on map");
+                });
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Directions API error: " + error);
+            }
+        });
+    }
     private void showSourceAndDestinationOnMap(String source, String destination) {
         Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
         try {
